@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<p>Use this area to provide additional information.</p>
+<div class="row">
+    <div class="col-md-12">
+        <iframe src='@Url.Content("~/MessageBoard/Index")' frameborder="0" scrolling="yes" class="x-iframe" style="width:100%;height:520px"></iframe>
+    </div>
+</div>
