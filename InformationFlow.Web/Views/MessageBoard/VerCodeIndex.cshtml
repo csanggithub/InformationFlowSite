@@ -1,0 +1,121 @@
+﻿
+@{
+    ViewBag.Title = "留言板";
+    Layout = "~/Views/Shared/_MessageBoardLayout.cshtml";
+}
+
+<div class="layadmin-user-display-show" id="LAY-user-login" style="display: none;">
+    <div class="layadmin-user-login-main">
+        <div class="layadmin-user-login-header">
+            <h2>留言板</h2>
+        </div>
+        <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
+            <div class="layui-form-item">
+                <label class="layadmin-user-login-icon layui-icon layui-icon-username" for="LAY-user-login-nickname"></label>
+                <input title="姓名" type="text" name="nickname" id="LAY-user-login-nickname" lay-verify="required|nickname" placeholder="姓名" class="layui-input" maxlength="20">
+            </div>
+            <div class="layui-form-item">
+                <label class="layadmin-user-login-icon layui-icon layui-icon-cellphone" for="LAY-user-login-cellphone"></label>
+                <input title="手机号码" type="text" name="cellphone" id="LAY-user-login-cellphone" lay-verify="required|phone" placeholder="手机" class="layui-input" maxlength="11">
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-row">
+                    <div class="layui-col-xs7">
+                        <label class="layadmin-user-login-icon layui-icon layui-icon-vercode" for="LAY-user-login-vercode"></label>
+                        <input title="验证码" type="text" name="vercode" id="LAY-user-login-vercode" lay-verify="required|vercode" placeholder="验证码" class="layui-input" maxlength="4">
+                    </div>
+                    <div class="layui-col-xs5">
+                        <div style="margin-left: 10px;">
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-fluid" id="LAY-user-getsmscode" onclick="SendVerCode()">获取验证码</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md12">
+                    <textarea title="留言" name="messageInfo" placeholder="留言给我们，请输入120以内的文字" class="layui-textarea" maxlength="120" id=""></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <input class="layui-input" name="sourceurl" value="" type="hidden" />
+                <input class="layui-input" name="isVerCode" value="1" type="hidden" />
+            </div>
+            <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-reg-submit" style="background-color: #dc233f;">留 言</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+        layui.use('form', function () {
+            var form = layui.form;
+            //自定义验证规则
+            form.verify({
+                vercode: [/(.+){4}$/, '验证码必须是4位']
+            });
+            //监听提交
+            form.on('submit(LAY-user-reg-submit)', function (data) {
+                data.field.sourceurl = document.referrer;
+                var actionUrl = '@Url.Action("SubmitMessageBoardInfo")';
+                $.post(actionUrl, data.field, function (result) {
+                    if (result.Success != null && result.Success) {
+                        layer.alert("留言成功");
+                        return;
+                    }
+                    else {
+                        layer.alert("留言失败！致电我们：12345698212");
+                        return;
+                    }
+                });
+            });
+        });
+
+    function SendVerCode() {
+        var myreg = /^[1][1-9]{10}$/;
+        var phone = $("#LAY-user-login-cellphone").val()
+        if (!myreg.test(phone)) {
+            layer.alert("手机号码有误，请输入11位有效手机号码");
+            return ;
+        }
+        $('#LAY-user-getsmscode').attr('disabled', "true");
+        $("#LAY-user-getsmscode").addClass("layui-btn-disabled");//添加标签类名
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SendVerCode")',
+            data: { cellphone: phone },
+            async: false,
+            success: function (result) {
+                if (result.Success != null && result.Success) {
+                    GetYzm();
+                }
+                else {
+                    layer.alert("发送短信验证码失败！致电我们：12345698212");
+                    $('#LAY-user-getsmscode').attr('disabled', false);
+                    $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+                }
+            },
+            error: function (xhr) {
+                layer.alert(xhr);
+                $('#LAY-user-getsmscode').attr('disabled', false);
+                $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+            }
+        });
+    }
+
+    //设置发送验证码的按钮的倒计时效果
+    var count = 59;
+    function GetYzm() {
+        $("#LAY-user-getsmscode").text(count + "秒后重获")
+        count--;
+        if (count > 0) {
+            setTimeout(GetYzm, 1000);
+        }
+        else {
+            count = 59;
+            $("#LAY-user-getsmscode").text("重获验证码");
+            $('#LAY-user-getsmscode').attr('disabled', false);
+            $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+        }
+    }
+</script>
+

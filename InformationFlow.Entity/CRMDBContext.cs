@@ -14,5 +14,6 @@ namespace InformationFlow.Entity
         {
         }
         public DbSet<MessageBoard> MessageBoards { get; set; }
+        public DbSet<SendSmsLog> SendSmsLogs { get; set; }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace InformationFlow.BLL
 {
-    public class MessageBoardBll
+    public class MessageBoardBLL
     {
         public void Add(MessageBoard model)
         {
