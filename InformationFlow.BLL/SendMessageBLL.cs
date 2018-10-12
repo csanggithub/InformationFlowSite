@@ -28,6 +28,7 @@ namespace InformationFlow.BLL
             DefaultProfile.AddEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
             IAcsClient acsClient = new DefaultAcsClient(profile);
             SendSmsRequest request = new SendSmsRequest();
+            SendSmsResponse sendSmsResponse = new SendSmsResponse();
             try
             {
                 //必填:待发送手机号。支持以逗号分隔的形式进行批量调用，批量上限为1000个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式，发送国际/港澳台消息时，接收号码格式为00+国际区号+号码，如“0085200000000”
@@ -41,21 +42,7 @@ namespace InformationFlow.BLL
                 //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
                 request.OutId = "yourOutId";
                 //请求失败这里会抛ClientException异常
-                SendSmsResponse sendSmsResponse = acsClient.GetAcsResponse(request);
-                var sendSmsLog = new SendSmsLog();
-                sendSmsLog.Phone = phone;
-                sendSmsLog.VerCode = verCode;
-                sendSmsLog.RequestId = sendSmsResponse.RequestId;
-                sendSmsLog.BizId = sendSmsResponse.BizId;
-                sendSmsLog.Code = sendSmsResponse.Code;
-                sendSmsLog.Message = sendSmsResponse.Message;
-                sendSmsLog.IsSuccess = sendSmsResponse.Code=="OK"?true:false;
-                sendSmsLog.Createtime = DateTime.Now;
-                using (var db = new CRMDBContext())
-                {
-                    db.SendSmsLogs.Add(sendSmsLog);
-                    db.SaveChanges();
-                }
+                sendSmsResponse = acsClient.GetAcsResponse(request);
             }
             catch (ServerException ex)
             {
@@ -64,6 +51,27 @@ namespace InformationFlow.BLL
             catch (ClientException ex)
             {
                 Log.Error("短信发送调用阿里云Api出现未处理异常", ex.ToString());
+            }
+            finally
+            {
+                var sendSmsLog = new SendSmsLog();
+                sendSmsLog.Phone = phone;
+                sendSmsLog.VerCode = verCode;
+                sendSmsLog.IsSuccess = false;
+                if (sendSmsResponse!=null)
+                {
+                    sendSmsLog.RequestId = sendSmsResponse.RequestId;
+                    sendSmsLog.BizId = sendSmsResponse.BizId;
+                    sendSmsLog.Code = sendSmsResponse.Code;
+                    sendSmsLog.Message = sendSmsResponse.Message;
+                    sendSmsLog.IsSuccess = sendSmsResponse.Code == "OK";
+                }
+                sendSmsLog.Createtime = DateTime.Now;
+                using (var db = new CRMDBContext())
+                {
+                    db.SendSmsLogs.Add(sendSmsLog);
+                    db.SaveChanges();
+                }
             }
             return false;
         }
