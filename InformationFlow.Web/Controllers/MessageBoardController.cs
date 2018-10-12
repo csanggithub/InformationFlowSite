@@ -23,6 +23,11 @@ namespace InformationFlow.Web.Controllers
             return View();
         }
 
+        public ActionResult VerCodeMessageBoardPage()
+        {
+            return View();
+        }
+
         public ActionResult VerCodeIndex()
         {
             return View();
@@ -33,7 +38,7 @@ namespace InformationFlow.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return Json(new { Success = true, ErrorMessage = "留言失败，请稍后重试！" }, JsonRequestBehavior.DenyGet);
+                return Json(new { Success = true, ErrorMessage = "提交内容有误，留言失败，请稍后重试！" }, JsonRequestBehavior.DenyGet);
             }
             try
             {
@@ -99,9 +104,9 @@ namespace InformationFlow.Web.Controllers
                 //var result = sms.SendSmsResponse(cellphone, verCode);
                 //if(result)
                 //{
-                //    return Json(new { Success = true, }, JsonRequestBehavior.DenyGet);
+                    return Json(new { Success = true, }, JsonRequestBehavior.DenyGet);
                 //}
-                return Json(new { Success = false, ErrorMessage = "短信发送失败！" }, JsonRequestBehavior.DenyGet);
+                //return Json(new { Success = false, ErrorMessage = "短信发送失败！" }, JsonRequestBehavior.DenyGet);
             }
             catch (Exception ex)
             {
@@ -109,6 +114,5 @@ namespace InformationFlow.Web.Controllers
                 return Json(new { Success = false, ErrorMessage = "短信发送失败！" }, JsonRequestBehavior.DenyGet);
             }
         }
-
     }
 }

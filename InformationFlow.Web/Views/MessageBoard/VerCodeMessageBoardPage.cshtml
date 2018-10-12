@@ -1,0 +1,126 @@
+﻿
+@{
+    ViewBag.Title = "VerCodeMessageBoardPage";
+    Layout = "~/Views/Shared/_MessageBoardLayout.cshtml";
+}
+<div class="layadmin-user-login-box layadmin-user-login-header">
+    <h2>留言给我们</h2>
+</div>
+<div class="layui-form" action="">
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">姓名：</label>
+            <div class="layui-input-inline">
+                <input title="姓名" type="text" name="nickname" lay-verify="required" autocomplete="off" class="layui-input" maxlength="20" placeholder="姓名">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">手机号码：</label>
+            <div class="layui-input-inline">
+                <input title="手机号码" type="tel" name="cellphone" lay-verify="required|phone" autocomplete="off" class="layui-input" maxlength="11" id="LAY-user-login-cellphone" placeholder="手机">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">验证码：</label>
+            <div class="layui-input-inline">
+                <input title="验证码" type="text" name="vercode" id="LAY-user-login-vercode" lay-verify="required|vercode" placeholder="验证码" class="layui-input" maxlength="4">
+            </div>
+            <div class="layui-input-inline ">
+                <div class="layui-col-xs5" style="margin-left: 1px;">
+                    <button type="button" class="layui-btn layui-btn-primary " id="LAY-user-getsmscode" onclick="SendVerCode()">获取验证码</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">留言内容：</label>
+        <div class="layui-input-block">
+            <textarea title="留言内容" placeholder="留言给我们，请输入120以内的文字" class="layui-textarea" maxlength="120" name="messageInfo"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <input class="layui-input" name="sourceurl" value="" type="hidden" />
+        <input class="layui-input" name="isVerCode" value="1" type="hidden" />
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="LAY-user-reg-submit">立即留言</button>
+            @*<button type="reset" class="layui-btn layui-btn-primary">重置</button>*@
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+        layui.use('form', function () {
+            var form = layui.form;
+            //自定义验证规则
+            form.verify({
+                vercode: [/(.+){4}$/, '验证码必须是4位']
+            });
+            //监听提交
+            form.on('submit(LAY-user-reg-submit)', function (data) {
+                data.field.sourceurl = document.referrer;
+                var actionUrl = '@Url.Action("SubmitMessageBoardInfo")';
+                $.post(actionUrl, data.field, function (result) {
+                    if (result.Success != null && result.Success) {
+                        layer.alert("留言成功");
+                        return;
+                    }
+                    else {
+                        layer.alert(result.ErrorMessage);
+                        return;
+                    }
+                });
+            });
+        });
+
+    function SendVerCode() {
+        var myreg = /^[1][1-9]{10}$/;
+        var phone = $("#LAY-user-login-cellphone").val()
+        if (!myreg.test(phone)) {
+            layer.alert("手机号码有误，请输入11位有效手机号码");
+            return ;
+        }
+        $('#LAY-user-getsmscode').attr('disabled', "true");
+        $("#LAY-user-getsmscode").addClass("layui-btn-disabled");//添加标签类名
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SendVerCode")',
+            data: { cellphone: phone },
+            async: false,
+            success: function (result) {
+                if (result.Success != null && result.Success) {
+                    GetYzm();
+                }
+                else {
+                    layer.alert(result.ErrorMessage);
+                    $('#LAY-user-getsmscode').attr('disabled', false);
+                    $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+                }
+            },
+            error: function (xhr) {
+                layer.alert(xhr);
+                $('#LAY-user-getsmscode').attr('disabled', false);
+                $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+            }
+        });
+    }
+
+    //设置发送验证码的按钮的倒计时效果
+    var count = 59;
+    function GetYzm() {
+        $("#LAY-user-getsmscode").text(count + "秒后重获")
+        count--;
+        if (count > 0) {
+            setTimeout(GetYzm, 1000);
+        }
+        else {
+            count = 59;
+            $("#LAY-user-getsmscode").text("重获验证码");
+            $('#LAY-user-getsmscode').attr('disabled', false);
+            $("#LAY-user-getsmscode").removeClass("layui-btn-disabled");//移除标签类名
+        }
+    }
+</script>
+
